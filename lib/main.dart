@@ -13,13 +13,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:flutter_stripe/flutter_stripe.dart';
+//import 'package:flutter_stripe/flutter_stripe.dart';
 
 import 'package:bastah/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Stripe.publishableKey = 'YOUR_PUBLISHABLE_KEY';
+  //Stripe.publishableKey = 'YOUR_PUBLISHABLE_KEY';
   if (Firebase.apps.isEmpty) {
     if (defaultTargetPlatform == TargetPlatform.android) {
       await Firebase.initializeApp();
