@@ -1,0 +1,191 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test
+
+  build_android:
+    name: Build Android
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > upload-keystore.jks
+        working-directory: android/app
+
+      - name: Create key.properties
+        run: |
+          echo "storeFile=upload-keystore.jks" > key.properties
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> key.properties
+        working-directory: android/app
+
+      - name: Build Android App Bundle
+        run: flutter build appbundle --release
+        
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Upload App Bundle artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release-bundle
+          path: build/app/outputs/bundle/release/app-release.aab
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release-apk
+          path: build/app/outputs/apk/release/app-release.apk
+
+  build_ios:
+    name: Build iOS
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods
+          pod setup
+
+      - name: Decode Apple Certificate
+        run: |
+          echo "${{ secrets.P12_BASE64 }}" | base64 --decode > certificate.p12
+          security import certificate.p12 -k ~/Library/Keychains/login.keychain-db -P "${{ secrets.P12_PASSWORD }}" -A
+          security set-key-partition-list -S apple-tool:,apple: -s -k ~/Library/Keychains/login.keychain-db
+
+      - name: Decode Provisioning Profile
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "${{ secrets.PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+
+      - name: Build iOS IPA
+        run: flutter build ios --release --no-codesign
+        env:
+          FLUTTER_BUILD_NUMBER: ${{ github.run_number }}
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release-ipa
+          path: build/ios/ipa/*.ipa
+
+  create_release:
+    name: Create GitHub Release
+    needs: [build_android, build_ios]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download Android App Bundle
+        uses: actions/download-artifact@v3
+        with:
+          name: app-release-bundle
+          path: artifacts/android
+
+      - name: Download Android APK
+        uses: actions/download-artifact@v3
+        with:
+          name: app-release-apk
+          path: artifacts/android
+
+      - name: Download iOS IPA
+        uses: actions/download-artifact@v3
+        with:
+          name: app-release-ipa
+          path: artifacts/ios
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Android App Bundle to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/android/app-release.aab
+          asset_name: app-release.aab
+          asset_content_type: application/zip
+
+      - name: Upload Android APK to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/android/app-release.apk
+          asset_name: app-release.apk
+          asset_content_type: application/zip
+
+      - name: Upload iOS IPA to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/ios/*.ipa
+          asset_name: app-release.ipa
+          asset_content_type: application/zip

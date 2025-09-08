@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Allow read for all products and categories (no login required for browsing)
+    match /products/{productId} {
+      allow read: if true;
+      // Admin can create, update, delete products
+      allow create, update, delete: if request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      // Admin can create, update, delete categories
+      allow create, update, delete: if request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Allow public list access for products and categories
+    match /products {
+      allow list: if true;
+    }
+    match /categories {
+      allow list: if true;
+    }
+
+    // Rules for orders
+    match /orders/{orderId} {
+      // Allow customer to create an order
+      allow create: if request.auth != null;
+      // Allow customer to read their own order, and admin to read any order
+      allow read: if request.auth != null && (request.auth.uid == resource.data.customerUid || exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+      // Allow admin to update order status
+      allow update: if request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      // Orders cannot be deleted
+      allow delete: if false;
+    }
+
+    // Allow users to query for their own orders
+    match /orders {
+      allow list: if request.auth != null;
+    }
+
+    // Admin collection: only authenticated admins can read/write their own data
+    // This is primarily for checking if a user is an admin.
+    match /admins/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false; // Admins are managed manually or through a separate process
+    }
+  }
+}

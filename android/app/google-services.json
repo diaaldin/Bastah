@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "27835536802",
+    "project_id": "bastah-314de",
+    "storage_bucket": "bastah-314de.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:27835536802:android:6ec2250f36e5a2b7e7cefb",
+        "android_client_info": {
+          "package_name": "com.diaaldin.basta"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCm2nHFOu8k81ykwxTC6zCovouV942dm1k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
