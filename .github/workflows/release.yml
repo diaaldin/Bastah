@@ -36,9 +36,9 @@ jobs:
     - name: Build AAB
       run: flutter build appbundle --release
 
-    # Build iOS
-    - name: Build iOS IPA
-      run: flutter build ipa 
+#    # Build iOS
+#    - name: Build iOS IPA
+#      run: flutter build ipa 
 
     # Upload artifacts
     - name: Upload APK artifact
@@ -63,20 +63,20 @@ jobs:
         track: internal #track: choose the chanel internal → for internal testing. or beta → for beta testing or production → for production release
 
     # Deploy to Apple App Store
-    - name: Install Fastlane
-      run: sudo gem install fastlane
+#    - name: Install Fastlane
+#      run: sudo gem install fastlane
     # Variables need to add to GitHub Secrets:
     #APPLE_KEY_ID
     #APPLE_ISSUER_ID
     #APPLE_API_KEY_P8
     #APPLE_APP_IDENTIFIER (example: com.example.app)
     #add this file to your repository secrets need to download from apple developer console
-    - name: Upload to App Store
-      run:
-        echo '${{ secrets.APPLE_API_KEY_P8 }}' > fastlane_api_key.p8
-        fastlane deliver \
-          --api_key_path fastlane_api_key.p8 \
-          --app_identifier ${{ secrets.APPLE_APP_IDENTIFIER }} \
-          --ipa build/ios/ipa/app-release.ipa \
-          --skip_screenshots \
-          --skip_metadata
+#    - name: Upload to App Store
+#      run:
+#        echo '${{ secrets.APPLE_API_KEY_P8 }}' > fastlane_api_key.p8
+#        fastlane deliver \
+#          --api_key_path fastlane_api_key.p8 \
+#          --app_identifier ${{ secrets.APPLE_APP_IDENTIFIER }} \
+#          --ipa build/ios/ipa/app-release.ipa \
+#          --skip_screenshots \
+#          --skip_metadata
