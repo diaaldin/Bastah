@@ -36,6 +36,9 @@ jobs:
     - name: Build AAB
       run: flutter build appbundle --release
 
+    - name: Verify AAB exists
+      run: ls -lh build/app/outputs/bundle/release/
+
 #    # Build iOS
 #    - name: Build iOS IPA
 #      run: flutter build ipa 
