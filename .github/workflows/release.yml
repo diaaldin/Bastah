@@ -38,7 +38,7 @@ jobs:
 
     # Build iOS
     - name: Build iOS IPA
-      run: flutter build ipa --release
+      run: flutter build ipa 
 
     # Upload artifacts
     - name: Upload APK artifact
@@ -72,7 +72,7 @@ jobs:
     #APPLE_APP_IDENTIFIER (example: com.example.app)
     #add this file to your repository secrets need to download from apple developer console
     - name: Upload to App Store
-      run: |
+      run:
         echo '${{ secrets.APPLE_API_KEY_P8 }}' > fastlane_api_key.p8
         fastlane deliver \
           --api_key_path fastlane_api_key.p8 \
