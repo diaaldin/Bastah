@@ -27,30 +27,36 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 4️⃣ Skip widget tests in CI
+      # 4️⃣ Decode keystore from secret
+      - name: Setup Release Keystore
+        run: |
+          mkdir -p android/key
+          echo "${{ secrets.RELEASE_KEY }}" | base64 --decode > android/key/my-release-key.jks
+
+      # 5️⃣ Skip widget tests in CI
       - name: Skip widget tests in CI
         run: echo "Skipping widget tests because Firebase is not initialized in CI"
 
-      # 5️⃣ Build APK (optional)
+      # 6️⃣ Build APK
       - name: Build APK
         run: flutter build apk --release
 
-      # 6️⃣ Build AAB
+      # 7️⃣ Build AAB
       - name: Build AAB
         run: flutter build appbundle --release
 
-      # 7️⃣ Verify AAB exists
+      # 8️⃣ Verify AAB exists
       - name: Verify AAB exists
         run: ls -lh build/app/outputs/bundle/release/
 
-      # 8️⃣ Upload artifacts (optional)
+      # 9️⃣ Upload artifacts (optional)
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release-aab-${{ github.run_number }}
           path: build/app/outputs/bundle/release/app-release.aab
 
-      # 9️⃣ Deploy to Google Play
+      # 🔟 Deploy to Google Play
       - name: Deploy to Google Play
         uses: r0adkll/upload-google-play@v1
         with:
