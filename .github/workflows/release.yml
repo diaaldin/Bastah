@@ -7,80 +7,56 @@ on:
   pull_request:
 
 jobs:
-  build:
+  build-and-deploy:
     name: Build & Deploy
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      # 1️⃣ Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.35.3'
-        channel: stable
+      # 2️⃣ Setup Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.3'
+          channel: stable
 
-    - name: Install dependencies
-      run: flutter pub get
-  # this is for skipping widget tests in CI because my app have a problems change if you need to use this
-  #    - name: Run tests
-  #      run: flutter test
-    - name: Skip widget tests in CI
-      run: echo "Skipping widget tests because Firebase is not initialized in CI"
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
 
-    # Build Android
-    - name: Build APK
-      run: flutter build apk --release
+      # 4️⃣ Skip widget tests in CI
+      - name: Skip widget tests in CI
+        run: echo "Skipping widget tests because Firebase is not initialized in CI"
 
-    - name: Build AAB
-      run: flutter build appbundle --release
+      # 5️⃣ Build APK (optional)
+      - name: Build APK
+        run: flutter build apk --release
 
-    - name: Verify AAB exists
-      run: ls -lh build/app/outputs/bundle/release/
+      # 6️⃣ Build AAB
+      - name: Build AAB
+        run: flutter build appbundle --release
 
-#    # Build iOS
-#    - name: Build iOS IPA
-#      run: flutter build ipa 
+      # 7️⃣ Verify AAB exists
+      - name: Verify AAB exists
+        run: ls -lh build/app/outputs/bundle/release/
 
-    # Upload artifacts
-    - name: Upload APK artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-release-apk-${{ github.run_number }}
-        path: build/app/outputs/flutter-apk/app-release.apk
+      # 8️⃣ Upload artifacts (optional)
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab-${{ github.run_number }}
+          path: build/app/outputs/bundle/release/app-release.aab
 
-    - name: Upload AAB artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-release-aab-${{ github.run_number }}
-        path: build/app/outputs/bundle/release/app-release.aab
-
-    # Deploy to Google Play
-
-    - name: Deploy to Google Play
-      uses: r0adkll/upload-google-play@v1
-      with:
-        serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }} # add this file to your repository secrets need to download from google play console
-        packageName: com.diaaldin.basta   # add your app package name
-        releaseFiles: build/app/outputs/bundle/release/app-release.aab
-        track: internal #track: choose the chanel internal → for internal testing. or beta → for beta testing or production → for production release
-
-    # Deploy to Apple App Store
-#    - name: Install Fastlane
-#      run: sudo gem install fastlane
-    # Variables need to add to GitHub Secrets:
-    #APPLE_KEY_ID
-    #APPLE_ISSUER_ID
-    #APPLE_API_KEY_P8
-    #APPLE_APP_IDENTIFIER (example: com.example.app)
-    #add this file to your repository secrets need to download from apple developer console
-#    - name: Upload to App Store
-#      run:
-#        echo '${{ secrets.APPLE_API_KEY_P8 }}' > fastlane_api_key.p8
-#        fastlane deliver \
-#          --api_key_path fastlane_api_key.p8 \
-#          --app_identifier ${{ secrets.APPLE_APP_IDENTIFIER }} \
-#          --ipa build/ios/ipa/app-release.ipa \
-#          --skip_screenshots \
-#          --skip_metadata
+      # 9️⃣ Deploy to Google Play
+      - name: Deploy to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.diaaldin.basta
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+          inAppUpdatePriority: 0
