@@ -1,4 +1,3 @@
-
 import 'dart:io';
 
 import 'package:bastah/models/category.dart';
@@ -117,17 +116,13 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                         _categoryId = value!;
                       });
                     },
-                    decoration: const InputDecoration(
-                      labelText: 'Category',
-                    ),
+                    decoration: const InputDecoration(labelText: 'Category'),
                   );
                 },
               ),
               TextFormField(
                 controller: _nameEnController,
-                decoration: const InputDecoration(
-                  labelText: 'Name (English)',
-                ),
+                decoration: const InputDecoration(labelText: 'Name (English)'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a name';
@@ -137,9 +132,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
               ),
               TextFormField(
                 controller: _nameArController,
-                decoration: const InputDecoration(
-                  labelText: 'Name (Arabic)',
-                ),
+                decoration: const InputDecoration(labelText: 'Name (Arabic)'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a name';
@@ -149,9 +142,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
               ),
               TextFormField(
                 controller: _nameHeController,
-                decoration: const InputDecoration(
-                  labelText: 'Name (Hebrew)',
-                ),
+                decoration: const InputDecoration(labelText: 'Name (Hebrew)'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a name';
@@ -182,9 +173,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
               ),
               TextFormField(
                 controller: _priceController,
-                decoration: const InputDecoration(
-                  labelText: 'Price',
-                ),
+                decoration: const InputDecoration(labelText: 'Price'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -195,9 +184,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
               ),
               TextFormField(
                 controller: _stockController,
-                decoration: const InputDecoration(
-                  labelText: 'Stock',
-                ),
+                decoration: const InputDecoration(labelText: 'Stock'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -211,9 +198,12 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                 onPressed: () async {
                   final picker = ImagePicker();
                   final pickedFiles = await picker.pickMultiImage();
+                  // ignore: unnecessary_null_comparison
                   if (pickedFiles != null) {
                     setState(() {
-                      _images.addAll(pickedFiles.map((xfile) => File(xfile.path)).toList());
+                      _images.addAll(
+                        pickedFiles.map((xfile) => File(xfile.path)).toList(),
+                      );
                     });
                   }
                 },
@@ -221,20 +211,12 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
               ),
               Wrap(
                 children: _images.map((image) {
-                  return Image.file(
-                    File(image.path),
-                    width: 100,
-                    height: 100,
-                  );
+                  return Image.file(File(image.path), width: 100, height: 100);
                 }).toList(),
               ),
               Wrap(
                 children: _imageUrls.map((imageUrl) {
-                  return Image.network(
-                    imageUrl,
-                    width: 100,
-                    height: 100,
-                  );
+                  return Image.network(imageUrl, width: 100, height: 100);
                 }).toList(),
               ),
               const SizedBox(height: 16.0),
