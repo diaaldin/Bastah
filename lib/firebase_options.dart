@@ -69,6 +69,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1234567890',
     projectId: 'bastah-314de',
     storageBucket: 'bastah-314de.appspot.com',
-    iosBundleId: 'com.diaaldin.basta',
+    iosBundleId: 'com.diaaldin.bastahaap',
   );
 }

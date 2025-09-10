@@ -1,4 +1,4 @@
-package com.diaaldin.basta
+package com.diaaldin.bastahaap
 
 import io.flutter.embedding.android.FlutterActivity
 
