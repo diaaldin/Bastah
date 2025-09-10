@@ -29,10 +29,10 @@ android {
 
     signingConfigs {
         release {
-            keyAlias = 'bastah-key-alias'
-            keyPassword = 'diakrea00'
-            storeFile = file('/full/path/to/my-release-key.jks')
-            storePassword = 'diakrea00'
+            keyAlias = "bastah-key-alias"
+            keyPassword = "diakrea00"
+            storeFile = file("/full/path/to/my-release-key.jks")
+            storePassword = "diakrea00"
         }
     }
 
