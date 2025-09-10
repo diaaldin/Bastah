@@ -35,7 +35,7 @@ android {
         create("release") {
             keyAlias = "bastah-key-alias"
             keyPassword = "diakrea00"
-            storeFile = file("key/my-release-key.jks")
+            storeFile = file("../key/my-release-key.jks")
             storePassword = "diakrea00"
         }
     }
