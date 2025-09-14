@@ -26,7 +26,7 @@ service cloud.firestore {
     // Rules for orders
     match /orders/{orderId} {
       // Allow customer to create an order
-      allow create: if request.auth != null;
+      allow create: if true;
       // Allow customer to read their own order, and admin to read any order
       allow read: if request.auth != null && (request.auth.uid == resource.data.customerUid || exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
       // Allow admin to update order status

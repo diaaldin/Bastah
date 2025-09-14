@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 
 class Order {
   final String id;
-  final String customerUid; // Added customerUid
+  final String? customerUid; // Changed to nullable
   final String customerName;
   final String customerPhone;
   final String customerAddress;
@@ -14,7 +14,7 @@ class Order {
 
   Order({
     required this.id,
-    required this.customerUid, // Added customerUid
+    this.customerUid, // No longer required
     required this.customerName,
     required this.customerPhone,
     required this.customerAddress,
@@ -29,7 +29,7 @@ class Order {
     Map data = doc.data() as Map<String, dynamic>;
     return Order(
       id: doc.id,
-      customerUid: data['customerUid'], // Added customerUid
+      customerUid: data['customerUid'], // Will be null if not present
       customerName: data['customer_name'],
       customerPhone: data['customer_phone'],
       customerAddress: data['customer_address'],
@@ -45,7 +45,7 @@ class Order {
 
   Map<String, dynamic> toFirestore() {
     return {
-      'customerUid': customerUid, // Added customerUid
+      'customerUid': customerUid,
       'customer_name': customerName,
       'customer_phone': customerPhone,
       'customer_address': customerAddress,
