@@ -1,6 +1,10 @@
 import 'package:bastah/l10n/app_localizations.dart';
 import 'package:bastah/models/order.dart';
+import 'package:bastah/models/product.dart';
+import 'package:bastah/services/product_service.dart';
+import 'package:bastah/models/product.dart';
 import 'package:bastah/services/order_service.dart';
+import 'package:bastah/services/product_service.dart';
 import 'package:flutter/material.dart';
 import 'package:bastah/l10n/app_localizations_utils.dart'; // Added import
 
@@ -24,15 +28,18 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
         return AlertDialog(
           title: Text(appLocalizations.updateOrderStatusTitle),
           content: DropdownButtonFormField<String>(
-            initialValue: selectedStatus, // Fixed here
-            decoration: InputDecoration(labelText: appLocalizations.orderStatusLabel),
+            initialValue: selectedStatus,
+            decoration: InputDecoration(
+              labelText: appLocalizations.orderStatusLabel,
+            ),
             items: <String>['pending', 'processing', 'shipped', 'delivered']
                 .map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(appLocalizations.translateOrderStatus(value)), // Uses extension
-              );
-            }).toList(), // .toList() added back here
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(appLocalizations.translateOrderStatus(value)),
+                  );
+                })
+                .toList(),
             onChanged: (String? newValue) {
               selectedStatus = newValue;
             },
@@ -45,9 +52,12 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
             ElevatedButton(
               onPressed: () async {
                 if (selectedStatus != null) {
-                  await _orderService.updateOrderStatus(order.id, selectedStatus!);
+                  await _orderService.updateOrderStatus(
+                    order.id,
+                    selectedStatus!,
+                  );
                 }
-                if (!mounted) return; // Added mounted check
+                if (!mounted) return;
                 Navigator.pop(context);
               },
               child: Text(appLocalizations.saveButtonText),
@@ -63,11 +73,9 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
     final appLocalizations = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(appLocalizations.orderManagementTitle),
-      ),
+      appBar: AppBar(title: Text(appLocalizations.orderManagementTitle)),
       body: StreamBuilder<List<Order>>(
-        stream: _orderService.getOrders(),
+        stream: _orderService.getAllOrders(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -92,9 +100,9 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
                 child: ExpansionTile(
                   title: Text('${appLocalizations.orderIdLabel}: ${order.id}'),
                   subtitle: Text(
-                      '${appLocalizations.customerNameLabel}: ${order.customerName}\n'
-                      '${appLocalizations.totalAmountLabel}: \$${order.totalAmount.toStringAsFixed(2)}\n'
-                      '${appLocalizations.orderStatusLabel}: ${appLocalizations.translateOrderStatus(order.status)}' // Uses extension
+                    '${appLocalizations.customerNameLabel}: ${order.customerName}\n'
+                    '${appLocalizations.totalAmountLabel}: \$${order.totalAmount.toStringAsFixed(2)}\n'
+                    '${appLocalizations.orderStatusLabel}: ${appLocalizations.translateOrderStatus(order.status)}',
                   ),
                   children: [
                     Padding(
@@ -102,21 +110,34 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('${appLocalizations.customerPhoneLabel}: ${order.customerPhone}'),
-                          Text('${appLocalizations.customerAddressLabel}: ${order.customerAddress}'),
-                          Text('${appLocalizations.paymentMethodLabel}: ${appLocalizations.translatePaymentMethod(order.paymentMethod)}'), // Uses extension
-                          Text('${appLocalizations.createdAtLabel}: ${order.createdAt.toDate().toLocal().toString().split('.').first}'),
+                          Text(
+                            '${appLocalizations.customerPhoneLabel}: ${order.customerPhone}',
+                          ),
+                          Text(
+                            '${appLocalizations.customerAddressLabel}: ${order.customerAddress}',
+                          ),
+                          Text(
+                            '${appLocalizations.paymentMethodLabel}: ${appLocalizations.translatePaymentMethod(order.paymentMethod)}',
+                          ),
+                          Text(
+                            '${appLocalizations.createdAtLabel}: ${order.createdAt.toDate().toLocal().toString().split('.').first}',
+                          ),
                           const SizedBox(height: 10),
-                          Text(appLocalizations.orderItemsLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          ...order.items.map((item) => Text(
-                              '- ${appLocalizations.productIdLabel}: ${item.productId}, ${appLocalizations.quantityLabel}: ${item.quantity}, ${appLocalizations.priceLabel}: \$${item.price.toStringAsFixed(2)}'
-                          )), // .toList() removed here
+                          Text(
+                            appLocalizations.orderItemsLabel,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          ...order.items.map(
+                            (item) => _OrderItemRow(item: item),
+                          ),
                           const SizedBox(height: 10),
                           Align(
                             alignment: Alignment.centerRight,
                             child: ElevatedButton(
                               onPressed: () => _showUpdateStatusDialog(order),
-                              child: Text(appLocalizations.updateStatusButtonText),
+                              child: Text(
+                                appLocalizations.updateStatusButtonText,
+                              ),
                             ),
                           ),
                         ],
@@ -129,6 +150,57 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
           );
         },
       ),
+    );
+  }
+}
+
+class _OrderItemRow extends StatefulWidget {
+  final OrderItem item;
+
+  const _OrderItemRow({required this.item});
+
+  @override
+  State<_OrderItemRow> createState() => _OrderItemRowState();
+}
+
+class _OrderItemRowState extends State<_OrderItemRow> {
+  final ProductService _productService = ProductService();
+  late Future<Product?> _productFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _productFuture = _productService.getProductById(widget.item.productId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appLocalizations = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
+
+    return FutureBuilder<Product?>(
+      future: _productFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 4.0),
+            child: LinearProgressIndicator(),
+          );
+        }
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+          return Text(
+            '- ${appLocalizations.productIdLabel}: ${widget.item.productId} (Product not found)',
+          );
+        }
+
+        final product = snapshot.data!;
+        final productName =
+            product.name[locale] ?? product.name['en'] ?? 'Unnamed Product';
+
+        return Text(
+          '- $productName, ${appLocalizations.quantityLabel}: ${widget.item.quantity}, ${appLocalizations.priceLabel}: \$${widget.item.price.toStringAsFixed(2)}',
+        );
+      },
     );
   }
 }

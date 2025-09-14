@@ -44,9 +44,10 @@ class OrderTrackingScreen extends StatelessWidget {
                 child: ExpansionTile(
                   title: Text('${appLocalizations.orderIdLabel}: ${order.id}'),
                   subtitle: Text(
-                    '${appLocalizations.totalAmountLabel}: \$${order.totalAmount.toStringAsFixed(2)}\n' // Corrected newline escape
+                    '${appLocalizations.totalAmountLabel}: \$${order.totalAmount.toString()}\n'
                     '${appLocalizations.orderStatusLabel}: ${appLocalizations.translateOrderStatus(order.status)}',
-                  ), // Fixed string literal
+                  ),
+
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -75,7 +76,7 @@ class OrderTrackingScreen extends StatelessWidget {
                           ), // Fixed hardcoded string
                           ...order.items.map(
                             (item) => Text(
-                              '- ${appLocalizations.productIdLabel}: ${item.productId}, ${appLocalizations.quantityLabel}: ${item.quantity}, ${appLocalizations.priceLabel}: \$${item.price.toStringAsFixed(2)}',
+                              '- ${appLocalizations.productIdLabel}: ${item.productId}, ${appLocalizations.quantityLabel}: ${item.quantity}, ${appLocalizations.priceLabel}: \$${item.price.toString()}',
                             ),
                           ), // .toList() removed here
                         ],
