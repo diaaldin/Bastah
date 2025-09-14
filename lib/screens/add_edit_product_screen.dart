@@ -33,6 +33,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
   final _stockController = TextEditingController();
   final _images = <File>[];
   final _imageUrls = <String>[];
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -56,31 +57,44 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
 
   Future<void> _saveProduct() async {
     if (_formKey.currentState!.validate()) {
-      final product = Product(
-        id: _id,
-        categoryId: _categoryId,
-        name: {
-          'en': _nameEnController.text,
-          'ar': _nameArController.text,
-          'he': _nameHeController.text,
-        },
-        description: {
-          'en': _descriptionEnController.text,
-          'ar': _descriptionArController.text,
-          'he': _descriptionHeController.text,
-        },
-        price: double.parse(_priceController.text),
-        stock: int.parse(_stockController.text),
-        images: _imageUrls,
-      );
+      setState(() {
+        _isLoading = true;
+      });
+      try {
+        final product = Product(
+          id: _id,
+          categoryId: _categoryId,
+          name: {
+            'en': _nameEnController.text,
+            'ar': _nameArController.text,
+            'he': _nameHeController.text,
+          },
+          description: {
+            'en': _descriptionEnController.text,
+            'ar': _descriptionArController.text,
+            'he': _descriptionHeController.text,
+          },
+          price: double.parse(_priceController.text),
+          stock: int.parse(_stockController.text),
+          images: _imageUrls,
+        );
 
-      if (widget.product != null) {
-        await _productService.updateProduct(product, newImageFiles: _images);
-      } else {
-        await _productService.addProduct(product, _images);
+        if (widget.product != null) {
+          await _productService.updateProduct(product, newImageFiles: _images);
+        } else {
+          await _productService.addProduct(product, _images);
+        }
+
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
-
-      Navigator.of(context).pop();
     }
   }
 
@@ -90,143 +104,154 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
       appBar: AppBar(
         title: Text(widget.product != null ? 'Edit Product' : 'Add Product'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              StreamBuilder<List<Category>>(
-                stream: _categoryService.getCategories(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const CircularProgressIndicator();
-                  }
-                  final categories = snapshot.data!;
-                  return DropdownButtonFormField<String>(
-                    value: _categoryId,
-                    items: categories.map((category) {
-                      return DropdownMenuItem(
-                        value: category.id,
-                        child: Text(category.name['en'] ?? ''),
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                children: [
+                  StreamBuilder<List<Category>>(
+                    stream: _categoryService.getCategories(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const CircularProgressIndicator();
+                      }
+                      final categories = snapshot.data!;
+                      return DropdownButtonFormField<String>(
+                        value: _categoryId,
+                        items: categories.map((category) {
+                          return DropdownMenuItem(
+                            value: category.id,
+                            child: Text(category.name['en'] ?? ''),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _categoryId = value!;
+                          });
+                        },
+                        decoration: const InputDecoration(labelText: 'Category'),
                       );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _categoryId = value!;
-                      });
                     },
-                    decoration: const InputDecoration(labelText: 'Category'),
-                  );
-                },
+                  ),
+                  TextFormField(
+                    controller: _nameEnController,
+                    decoration: const InputDecoration(labelText: 'Name (English)'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a name';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _nameArController,
+                    decoration: const InputDecoration(labelText: 'Name (Arabic)'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a name';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _nameHeController,
+                    decoration: const InputDecoration(labelText: 'Name (Hebrew)'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a name';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _descriptionEnController,
+                    decoration: const InputDecoration(
+                      labelText: 'Description (English)',
+                    ),
+                    maxLines: 3,
+                  ),
+                  TextFormField(
+                    controller: _descriptionArController,
+                    decoration: const InputDecoration(
+                      labelText: 'Description (Arabic)',
+                    ),
+                    maxLines: 3,
+                  ),
+                  TextFormField(
+                    controller: _descriptionHeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Description (Hebrew)',
+                    ),
+                    maxLines: 3,
+                  ),
+                  TextFormField(
+                    controller: _priceController,
+                    decoration: const InputDecoration(labelText: 'Price'),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a price';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _stockController,
+                    decoration: const InputDecoration(labelText: 'Stock'),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a stock quantity';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16.0),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : () async {
+                      final picker = ImagePicker();
+                      final pickedFiles = await picker.pickMultiImage();
+                      // ignore: unnecessary_null_comparison
+                      if (pickedFiles != null) {
+                        setState(() {
+                          _images.addAll(
+                            pickedFiles.map((xfile) => File(xfile.path)).toList(),
+                          );
+                        });
+                      }
+                    },
+                    child: const Text('Add Images'),
+                  ),
+                  Wrap(
+                    children: _images.map((image) {
+                      return Image.file(File(image.path), width: 100, height: 100);
+                    }).toList(),
+                  ),
+                  Wrap(
+                    children: _imageUrls.map((imageUrl) {
+                      return Image.network(imageUrl, width: 100, height: 100);
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16.0),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _saveProduct,
+                    child: const Text('Save'),
+                  ),
+                ],
               ),
-              TextFormField(
-                controller: _nameEnController,
-                decoration: const InputDecoration(labelText: 'Name (English)'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _nameArController,
-                decoration: const InputDecoration(labelText: 'Name (Arabic)'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _nameHeController,
-                decoration: const InputDecoration(labelText: 'Name (Hebrew)'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _descriptionEnController,
-                decoration: const InputDecoration(
-                  labelText: 'Description (English)',
-                ),
-                maxLines: 3,
-              ),
-              TextFormField(
-                controller: _descriptionArController,
-                decoration: const InputDecoration(
-                  labelText: 'Description (Arabic)',
-                ),
-                maxLines: 3,
-              ),
-              TextFormField(
-                controller: _descriptionHeController,
-                decoration: const InputDecoration(
-                  labelText: 'Description (Hebrew)',
-                ),
-                maxLines: 3,
-              ),
-              TextFormField(
-                controller: _priceController,
-                decoration: const InputDecoration(labelText: 'Price'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a price';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _stockController,
-                decoration: const InputDecoration(labelText: 'Stock'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a stock quantity';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: () async {
-                  final picker = ImagePicker();
-                  final pickedFiles = await picker.pickMultiImage();
-                  // ignore: unnecessary_null_comparison
-                  if (pickedFiles != null) {
-                    setState(() {
-                      _images.addAll(
-                        pickedFiles.map((xfile) => File(xfile.path)).toList(),
-                      );
-                    });
-                  }
-                },
-                child: const Text('Add Images'),
-              ),
-              Wrap(
-                children: _images.map((image) {
-                  return Image.file(File(image.path), width: 100, height: 100);
-                }).toList(),
-              ),
-              Wrap(
-                children: _imageUrls.map((imageUrl) {
-                  return Image.network(imageUrl, width: 100, height: 100);
-                }).toList(),
-              ),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: _saveProduct,
-                child: const Text('Save'),
-              ),
-            ],
+            ),
           ),
-        ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
       ),
     );
   }

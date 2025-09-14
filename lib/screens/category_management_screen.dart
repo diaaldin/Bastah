@@ -34,78 +34,102 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
       _categoryNameHeController.clear();
     }
 
+    var isLoading = false;
+
     showDialog(
       context: context,
+      barrierDismissible: false, // Prevent dialog dismissal during loading
       builder: (context) {
         final appLocalizations = AppLocalizations.of(context)!;
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
               title: Text(category == null ? appLocalizations.addCategoryTitle : appLocalizations.editCategoryTitle),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: _categoryNameEnController,
-                      decoration: InputDecoration(labelText: appLocalizations.categoryNameEnLabel),
+              content: Stack(
+                children: [
+                  SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextField(
+                          controller: _categoryNameEnController,
+                          decoration: InputDecoration(labelText: appLocalizations.categoryNameEnLabel),
+                        ),
+                        TextField(
+                          controller: _categoryNameArController,
+                          decoration: InputDecoration(labelText: appLocalizations.categoryNameArLabel),
+                        ),
+                        TextField(
+                          controller: _categoryNameHeController,
+                          decoration: InputDecoration(labelText: appLocalizations.categoryNameHeLabel),
+                        ),
+                        const SizedBox(height: 20),
+                        _image == null
+                            ? (category?.imageUrl.isNotEmpty == true
+                                ? Image.network(category!.imageUrl, height: 100)
+                                : const SizedBox.shrink())
+                            : Image.file(File(_image!.path), height: 100),
+                        TextButton.icon(
+                          icon: const Icon(Icons.image),
+                          label: const Text('Add Image'),
+                          onPressed: isLoading ? null : () async {
+                            final ImagePicker picker = ImagePicker();
+                            final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                            if (image != null) {
+                              setState(() {
+                                _image = image;
+                              });
+                            }
+                          },
+                        ),
+                      ],
                     ),
-                    TextField(
-                      controller: _categoryNameArController,
-                      decoration: InputDecoration(labelText: appLocalizations.categoryNameArLabel),
+                  ),
+                  if (isLoading)
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.white.withOpacity(0.7),
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
                     ),
-                    TextField(
-                      controller: _categoryNameHeController,
-                      decoration: InputDecoration(labelText: appLocalizations.categoryNameHeLabel),
-                    ),
-                    const SizedBox(height: 20),
-                    _image == null
-                        ? (category?.imageUrl.isNotEmpty == true
-                            ? Image.network(category!.imageUrl, height: 100)
-                            : const SizedBox.shrink())
-                        : Image.file(File(_image!.path), height: 100),
-                    TextButton.icon(
-                      icon: const Icon(Icons.image),
-                      label: const Text('Add Image'),
-                      onPressed: () async {
-                        final ImagePicker picker = ImagePicker();
-                        final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                        if (image != null) {
-                          setState(() {
-                            _image = image;
-                          });
-                        }
-                      },
-                    ),
-                  ],
-                ),
+                ],
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: isLoading ? null : () => Navigator.pop(context),
                   child: Text(appLocalizations.cancelButtonText),
                 ),
                 ElevatedButton(
-                  onPressed: () async {
-                    String imageUrl = _editingCategory?.imageUrl ?? '';
-                    if (_image != null) {
-                      imageUrl = await _categoryService.uploadImage(_image!);
-                    }
+                  onPressed: isLoading ? null : () async {
+                    setState(() {
+                      isLoading = true;
+                    });
+                    try {
+                      String imageUrl = _editingCategory?.imageUrl ?? '';
+                      if (_image != null) {
+                        imageUrl = await _categoryService.uploadImage(_image!);
+                      }
 
-                    final name = {
-                      'en': _categoryNameEnController.text,
-                      'ar': _categoryNameArController.text,
-                      'he': _categoryNameHeController.text,
-                    };
+                      final name = {
+                        'en': _categoryNameEnController.text,
+                        'ar': _categoryNameArController.text,
+                        'he': _categoryNameHeController.text,
+                      };
 
-                    if (_editingCategory == null) {
-                      // Add new category
-                      await _categoryService.addCategory(Category(id: '', name: name, imageUrl: imageUrl));
-                    } else {
-                      // Update existing category
-                      await _categoryService.updateCategory(Category(id: _editingCategory!.id, name: name, imageUrl: imageUrl));
+                      if (_editingCategory == null) {
+                        await _categoryService.addCategory(Category(id: '', name: name, imageUrl: imageUrl));
+                      } else {
+                        await _categoryService.updateCategory(Category(id: _editingCategory!.id, name: name, imageUrl: imageUrl));
+                      }
+                      if (mounted) Navigator.pop(context);
+                    } catch (e) {
+                      // Optionally show an error message to the user
+                      if (mounted) {
+                        setState(() {
+                          isLoading = false;
+                        });
+                      }
                     }
-                    Navigator.pop(context);
                   },
                   child: Text(appLocalizations.saveButtonText),
                 ),
