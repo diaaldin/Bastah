@@ -4,6 +4,7 @@ import 'package:bastah/services/auth_service.dart';
 import 'package:bastah/screens/category_management_screen.dart';
 import 'package:bastah/screens/product_management_screen.dart';
 import 'package:bastah/screens/order_management_screen.dart';
+import 'package:bastah/screens/admin_dashboard_screen.dart'; // Import the new dashboard screen
 import 'package:flutter/material.dart';
 
 class AdminHomeScreen extends StatelessWidget {
@@ -14,83 +15,82 @@ class AdminHomeScreen extends StatelessWidget {
     final appLocalizations = AppLocalizations.of(context)!;
     final AuthService authService = AuthService();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(appLocalizations.adminHomeTitle),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await authService.signOut();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => const AdminLoginScreen(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(color: Theme.of(context).primaryColor),
-              child: Text(
-                appLocalizations.adminPanelTitle,
-                style: const TextStyle(color: Colors.white, fontSize: 24),
+    return PopScope(
+      canPop: false, // Prevent popping with the system back button
+      onPopInvoked: (didPop) async {
+        if (didPop) {
+          return;
+        }
+        final bool shouldLogout =
+            await showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text(appLocalizations.confirmLogoutTitle),
+                content: Text(appLocalizations.confirmLogoutMessage),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text(appLocalizations.cancelButtonText),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: Text(appLocalizations.logoutButtonText),
+                  ),
+                ],
               ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.category),
-              title: Text(appLocalizations.categoryManagementTitle),
-              onTap: () {
-                Navigator.pop(context); // Close the drawer
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const CategoryManagementScreen(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.production_quantity_limits),
-              title: Text(appLocalizations.productManagementTitle),
-              onTap: () {
-                Navigator.pop(context); // Close the drawer
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const ProductManagementScreen(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.shopping_bag),
-              title: Text(appLocalizations.orderManagementTitle),
-              onTap: () {
-                Navigator.pop(context); // Close the drawer
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const OrderManagementScreen(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: Text(appLocalizations.settingsTitle),
-              onTap: () {
-                // Navigate to Settings Screen
-                Navigator.pop(context); // Close the drawer
-                // TODO: Implement navigation to Settings Screen
+            ) ??
+            false;
+        if (shouldLogout) {
+          await authService.signOut();
+          if (context.mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const AdminLoginScreen()),
+            );
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(appLocalizations.adminHomeTitle),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () async {
+                final bool shouldLogout =
+                    await showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(appLocalizations.confirmLogoutTitle),
+                        content: Text(appLocalizations.confirmLogoutMessage),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: Text(appLocalizations.cancelButtonText),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: Text(appLocalizations.logoutButtonText),
+                          ),
+                        ],
+                      ),
+                    ) ??
+                    false;
+                if (shouldLogout) {
+                  await authService.signOut();
+                  if (context.mounted) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const AdminLoginScreen(),
+                      ),
+                    );
+                  }
+                }
               },
             ),
           ],
         ),
+        body: Center(child: Text(appLocalizations.adminHomeWelcome)),
       ),
-      body: Center(child: Text(appLocalizations.adminHomeWelcome)),
     );
   }
 }

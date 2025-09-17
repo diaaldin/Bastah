@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 
 class Order {
   final String id;
-  final String? customerUid; // Changed to nullable
+  final String customerUid;
   final String customerName;
   final String customerPhone;
   final String customerAddress;
@@ -14,7 +14,7 @@ class Order {
 
   Order({
     required this.id,
-    this.customerUid, // No longer required
+    required this.customerUid,
     required this.customerName,
     required this.customerPhone,
     required this.customerAddress,
@@ -29,17 +29,17 @@ class Order {
     Map data = doc.data() as Map<String, dynamic>;
     return Order(
       id: doc.id,
-      customerUid: data['customerUid'], // Will be null if not present
-      customerName: data['customer_name'],
-      customerPhone: data['customer_phone'],
-      customerAddress: data['customer_address'],
-      items: (data['items'] as List)
+      customerUid: data['customerUid'] ?? '',
+      customerName: data['customer_name'] ?? '',
+      customerPhone: data['customer_phone'] ?? '',
+      customerAddress: data['customer_address'] ?? '',
+      items: (data['items'] as List? ?? [])
           .map((item) => OrderItem.fromMap(item))
           .toList(),
-      totalAmount: data['total_amount'].toDouble(),
-      paymentMethod: data['payment_method'],
-      status: data['status'],
-      createdAt: data['created_at'],
+      totalAmount: (data['total_amount'] ?? 0).toDouble(),
+      paymentMethod: data['payment_method'] ?? '',
+      status: data['status'] ?? '',
+      createdAt: data['created_at'] ?? Timestamp.now(),
     );
   }
 

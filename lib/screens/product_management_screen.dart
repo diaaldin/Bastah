@@ -92,176 +92,194 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       context: context,
       builder: (context) {
         final appLocalizations = AppLocalizations.of(context)!;
-        return AlertDialog(
-          title: Text(
-            product == null
-                ? appLocalizations.addProductTitle
-                : appLocalizations.editProductTitle,
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: _productNameEnController,
-                  decoration: InputDecoration(
-                    labelText: appLocalizations.productNameEnLabel,
-                  ),
-                ),
-                TextField(
-                  controller: _productNameArController,
-                  decoration: InputDecoration(
-                    labelText: appLocalizations.productNameArLabel,
-                  ),
-                ),
-                TextField(
-                  controller: _productNameHeController,
-                  decoration: InputDecoration(
-                    labelText: appLocalizations.productNameHeLabel,
-                  ),
-                ),
-                TextField(
-                  controller: _productDescEnController,
-                  decoration: InputDecoration(
-                    labelText: appLocalizations.productDescriptionEnLabel,
-                  ),
-                ),
-                TextField(
-                  controller: _productDescArController,
-                  decoration: InputDecoration(
-                    labelText: appLocalizations.productDescriptionArLabel,
-                  ),
-                ),
-                TextField(
-                  controller: _productDescHeController,
-                  decoration: InputDecoration(
-                    labelText: appLocalizations.productDescriptionHeLabel,
-                  ),
-                ),
-                TextField(
-                  controller: _productPriceController,
-                  decoration: InputDecoration(
-                    labelText: appLocalizations.productPriceLabel,
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                TextField(
-                  controller: _productStockController,
-                  decoration: InputDecoration(
-                    labelText: appLocalizations.productStockLabel,
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 10),
-                StreamBuilder<List<Category>>(
-                  stream: _categoryService.getCategories(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const CircularProgressIndicator();
-                    }
-                    List<Category> categories = snapshot.data ?? [];
-                    return DropdownButtonFormField<String>(
-                      initialValue: _selectedCategoryId, // Fixed here
-                      hint: Text(appLocalizations.selectCategoryHint),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _selectedCategoryId = newValue;
-                        });
-                      },
-                      items: categories.map<DropdownMenuItem<String>>((
-                        Category category,
-                      ) {
-                        return DropdownMenuItem<String>(
-                          value: category.id,
-                          child: Text(
-                            category.name[Localizations.localeOf(
-                                  context,
-                                ).languageCode] ??
-                                category.name['en'] ??
-                                '',
-                          ),
-                        );
-                      }).toList(), // .toList() added back here
-                    );
-                  },
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: _pickImages,
-                  child: Text(appLocalizations.pickImagesButtonText),
-                ),
-                if (_selectedImages.isNotEmpty)
-                  Text(
-                    appLocalizations.imagesSelectedText(_selectedImages.length),
-                  ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(appLocalizations.cancelButtonText),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final name = {
-                  'en': _productNameEnController.text,
-                  'ar': _productNameArController.text,
-                  'he': _productNameHeController.text,
-                };
-                final description = {
-                  'en': _productDescEnController.text,
-                  'ar': _productDescArController.text,
-                  'he': _productDescHeController.text,
-                };
-                final price =
-                    double.tryParse(_productPriceController.text) ?? 0.0;
-                final stock = int.tryParse(_productStockController.text) ?? 0;
-
-                if (_selectedCategoryId == null) {
-                  // Handle case where category is not selected
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(appLocalizations.selectCategoryHint),
+        bool isLoading = false;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(
+                product == null
+                    ? appLocalizations.addProductTitle
+                    : appLocalizations.editProductTitle,
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: _productNameEnController,
+                      decoration: InputDecoration(
+                        labelText: appLocalizations.productNameEnLabel,
+                      ),
                     ),
-                  );
-                  return;
-                }
+                    TextField(
+                      controller: _productNameArController,
+                      decoration: InputDecoration(
+                        labelText: appLocalizations.productNameArLabel,
+                      ),
+                    ),
+                    TextField(
+                      controller: _productNameHeController,
+                      decoration: InputDecoration(
+                        labelText: appLocalizations.productNameHeLabel,
+                      ),
+                    ),
+                    TextField(
+                      controller: _productDescEnController,
+                      decoration: InputDecoration(
+                        labelText: appLocalizations.productDescriptionEnLabel,
+                      ),
+                    ),
+                    TextField(
+                      controller: _productDescArController,
+                      decoration: InputDecoration(
+                        labelText: appLocalizations.productDescriptionArLabel,
+                      ),
+                    ),
+                    TextField(
+                      controller: _productDescHeController,
+                      decoration: InputDecoration(
+                        labelText: appLocalizations.productDescriptionHeLabel,
+                      ),
+                    ),
+                    TextField(
+                      controller: _productPriceController,
+                      decoration: InputDecoration(
+                        labelText: appLocalizations.productPriceLabel,
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                    TextField(
+                      controller: _productStockController,
+                      decoration: InputDecoration(
+                        labelText: appLocalizations.productStockLabel,
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 10),
+                    StreamBuilder<List<Category>>(
+                      stream: _categoryService.getCategories(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const CircularProgressIndicator();
+                        }
+                        List<Category> categories = snapshot.data ?? [];
+                        return DropdownButtonFormField<String>(
+                          initialValue: _selectedCategoryId, // Fixed here
+                          hint: Text(appLocalizations.selectCategoryHint),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedCategoryId = newValue;
+                            });
+                          },
+                          items: categories.map<DropdownMenuItem<String>>((
+                            Category category,
+                          ) {
+                            return DropdownMenuItem<String>(
+                              value: category.id,
+                              child: Text(
+                                category.name[Localizations.localeOf(
+                                      context,
+                                    ).languageCode] ??
+                                    category.name['en'] ??
+                                    '',
+                              ),
+                            );
+                          }).toList(), // .toList() added back here
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: _pickImages,
+                      child: Text(appLocalizations.pickImagesButtonText),
+                    ),
+                    if (_selectedImages.isNotEmpty)
+                      Text(
+                        appLocalizations.imagesSelectedText(_selectedImages.length),
+                      ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(appLocalizations.cancelButtonText),
+                ),
+                ElevatedButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          setState(() {
+                            isLoading = true;
+                          });
+                          final name = {
+                            'en': _productNameEnController.text,
+                            'ar': _productNameArController.text,
+                            'he': _productNameHeController.text,
+                          };
+                          final description = {
+                            'en': _productDescEnController.text,
+                            'ar': _productDescArController.text,
+                            'he': _productDescHeController.text,
+                          };
+                          final price =
+                              double.tryParse(_productPriceController.text) ?? 0.0;
+                          final stock =
+                              int.tryParse(_productStockController.text) ?? 0;
 
-                if (_editingProduct == null) {
-                  // Add new product
-                  Product newProduct = Product(
-                    id: '',
-                    categoryId: _selectedCategoryId!,
-                    name: name,
-                    description: description,
-                    price: price,
-                    stock: stock,
-                    images: [], // Images will be uploaded separately
-                  );
-                  await _productService.addProduct(newProduct, _selectedImages);
-                } else {
-                  // Update existing product
-                  Product updatedProduct = Product(
-                    id: _editingProduct!.id,
-                    categoryId: _selectedCategoryId!,
-                    name: name,
-                    description: description,
-                    price: price,
-                    stock: stock,
-                    images: _editingProduct!.images, // Keep existing images
-                  );
-                  await _productService.updateProduct(
-                    updatedProduct,
-                    newImageFiles: _selectedImages,
-                  );
-                }
-                if (!mounted) return; // Added mounted check
-                Navigator.pop(context);
-              },
-              child: Text(appLocalizations.saveButtonText),
-            ),
-          ],
+                          if (_selectedCategoryId == null) {
+                            // Handle case where category is not selected
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(appLocalizations.selectCategoryHint),
+                              ),
+                            );
+                            setState(() {
+                              isLoading = false;
+                            });
+                            return;
+                          }
+
+                          if (_editingProduct == null) {
+                            // Add new product
+                            Product newProduct = Product(
+                              id: '',
+                              categoryId: _selectedCategoryId!,
+                              name: name,
+                              description: description,
+                              price: price,
+                              stock: stock,
+                              images: [], // Images will be uploaded separately
+                            );
+                            await _productService.addProduct(
+                                newProduct, _selectedImages);
+                          } else {
+                            // Update existing product
+                            Product updatedProduct = Product(
+                              id: _editingProduct!.id,
+                              categoryId: _selectedCategoryId!,
+                              name: name,
+                              description: description,
+                              price: price,
+                              stock: stock,
+                              images:
+                                  _editingProduct!.images, // Keep existing images
+                            );
+                            await _productService.updateProduct(
+                              updatedProduct,
+                              newImageFiles: _selectedImages,
+                            );
+                          }
+                          if (!mounted) return; // Added mounted check
+                          Navigator.pop(context);
+                        },
+                  child: isLoading
+                      ? const CircularProgressIndicator()
+                      : Text(appLocalizations.saveButtonText),
+                ),
+              ],
+            );
+          },
         );
       },
     );

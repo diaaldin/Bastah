@@ -76,13 +76,23 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
           },
           price: double.parse(_priceController.text),
           stock: int.parse(_stockController.text),
-          images: _imageUrls,
+          images: _imageUrls, // Pass current _imageUrls
         );
 
         if (widget.product != null) {
-          await _productService.updateProduct(product, newImageFiles: _images);
+          final updatedProduct = await _productService.updateProduct(product, newImageFiles: _images);
+          setState(() {
+            _imageUrls.clear();
+            _imageUrls.addAll(updatedProduct.images);
+            _images.clear(); // Clear new images after upload
+          });
         } else {
-          await _productService.addProduct(product, _images);
+          final newProduct = await _productService.addProduct(product, _images);
+          setState(() {
+            _imageUrls.clear();
+            _imageUrls.addAll(newProduct.images);
+            _images.clear(); // Clear new images after upload
+          });
         }
 
         if (mounted) {
@@ -231,8 +241,30 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                     }).toList(),
                   ),
                   Wrap(
-                    children: _imageUrls.map((imageUrl) {
-                      return Image.network(imageUrl, width: 100, height: 100);
+                    spacing: 8.0,
+                    runSpacing: 8.0,
+                    children: _imageUrls.asMap().entries.map((entry) {
+                      int idx = entry.key;
+                      String imageUrl = entry.value;
+                      return Stack(
+                        children: [
+                          Image.network(imageUrl, width: 100, height: 100, fit: BoxFit.cover),
+                          Positioned(
+                            right: 0,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _imageUrls.removeAt(idx);
+                                });
+                              },
+                              child: const Icon(
+                                Icons.remove_circle,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
                     }).toList(),
                   ),
                   const SizedBox(height: 16.0),

@@ -28,6 +28,18 @@ class OrderService {
     });
   }
 
+  // Get recent orders (for admin dashboard)
+  Stream<List<Order>> getRecentOrders() {
+    return _firestore
+        .collection('orders')
+        .orderBy('created_at', descending: true)
+        .limit(5)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => Order.fromFirestore(doc)).toList();
+    });
+  }
+
   // Add a new order (from customer checkout)
   Future<void> addOrder(Order order) async {
     await _firestore.collection('orders').add(order.toFirestore());

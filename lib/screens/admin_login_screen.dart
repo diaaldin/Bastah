@@ -1,5 +1,6 @@
 import 'package:bastah/providers/app_provider.dart';
 import 'package:bastah/screens/admin_home_screen.dart';
+import 'package:bastah/screens/admin_dashboard_screen.dart'; // Import AdminDashboardScreen
 import 'package:bastah/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -18,24 +19,35 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+  bool _isLoading = false;
 
   String? _errorMessage;
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      User? user = await _authService.signInWithEmailAndPassword(
-        _emailController.text,
-        _passwordController.text,
-      );
-
-      if (user != null) {
-        // Navigate to admin home screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const AdminHomeScreen()),
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+      try {
+        User? user = await _authService.signInWithEmailAndPassword(
+          _emailController.text,
+          _passwordController.text,
         );
-      } else {
+
+        if (user != null) {
+          // Navigate to admin dashboard screen
+                    Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+          );
+        } else {
+          setState(() {
+            _errorMessage = AppLocalizations.of(context)!.loginFailedMessage;
+          });
+        }
+      } finally {
         setState(() {
-          _errorMessage = AppLocalizations.of(context)!.loginFailedMessage;
+          _isLoading = false;
         });
       }
     }
@@ -102,10 +114,13 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       style: const TextStyle(color: Colors.red),
                     ),
                   ),
-                ElevatedButton(
-                  onPressed: _login,
-                  child: Text(appLocalizations.loginButtonText),
-                ),
+                if (_isLoading)
+                  const CircularProgressIndicator()
+                else
+                  ElevatedButton(
+                    onPressed: _login,
+                    child: Text(appLocalizations.loginButtonText),
+                  ),
                 const SizedBox(height: 20),
                 TextButton(
                   onPressed: () {

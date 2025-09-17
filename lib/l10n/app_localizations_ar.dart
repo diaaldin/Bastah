@@ -305,4 +305,74 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get languageLabel => 'Language';
+
+  @override
+  String get confirmLogoutTitle => 'تأكيد تسجيل الخروج';
+
+  @override
+  String get confirmLogoutMessage => 'هل أنت متأكد أنك تريد تسجيل الخروج؟';
+
+  @override
+  String get logoutButtonText => 'تسجيل الخروج';
+
+  @override
+  String get adminDashboardTitle => 'لوحة تحكم المسؤول';
+
+  @override
+  String get dashboardSummaryTitle => 'ملخص';
+
+  @override
+  String get totalOrdersLabel => 'إجمالي الطلبات';
+
+  @override
+  String get totalRevenueLabel => 'إجمالي الإيرادات';
+
+  @override
+  String get totalProductsLabel => 'إجمالي المنتجات';
+
+  @override
+  String get totalCustomersLabel => 'إجمالي العملاء';
+
+  @override
+  String get dashboardSalesChartTitle => 'المبيعات خلال آخر 7 أيام';
+
+  @override
+  String get dayMon => 'الاثنين';
+
+  @override
+  String get dayTue => 'الثلاثاء';
+
+  @override
+  String get dayWed => 'الأربعاء';
+
+  @override
+  String get dayThu => 'الخميس';
+
+  @override
+  String get dayFri => 'الجمعة';
+
+  @override
+  String get daySat => 'السبت';
+
+  @override
+  String get daySun => 'الأحد';
+
+  @override
+  String get dashboardRecentOrdersTitle => 'الطلبات الأخيرة';
+
+  @override
+  String get signOutConfirmationTitle => 'تسجيل الخروج';
+
+  @override
+  String get signOutConfirmationMessage =>
+      'هل أنت متأكد أنك تريد تسجيل الخروج؟';
+
+  @override
+  String get signOutButtonText => 'تسجيل الخروج';
+
+  @override
+  String get orderPlacedLabel => 'Order Placed';
+
+  @override
+  String get unknownProduct => 'Unknown Product';
 }

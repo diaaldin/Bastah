@@ -8,89 +8,112 @@ import 'package:bastah/services/cart_service.dart';
 import 'package:bastah/services/category_service.dart';
 import 'package:bastah/services/order_service.dart';
 import 'package:bastah/services/product_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-// import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:bastah/services/notification_service.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  runApp(const AppInitializer());
+}
 
-  // Clear all existing Firebase instances (for development only)
-  try {
-    await Firebase.app().delete();
-  } catch (e) {
-    debugPrint('No existing Firebase app to delete');
+class AppInitializer extends StatefulWidget {
+  const AppInitializer({super.key});
+
+  @override
+  State<AppInitializer> createState() => _AppInitializerState();
+}
+
+class _AppInitializerState extends State<AppInitializer> {
+  late Future<void> _initializationFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializationFuture = _initializeApp();
   }
 
-  try {
+  Future<void> _initializeApp() async {
     // Initialize Firebase
-    final FirebaseApp app = await Firebase.initializeApp(
-      name: 'bastah-app', // Give a unique name to avoid conflicts
+    await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    debugPrint('Initialized Firebase app: ${app.name}');
 
-    // Initialize Firebase App Check in a separate isolate
-    await Future.microtask(() async {
-      try {
-        await FirebaseAppCheck.instance.activate(
-          androidProvider: AndroidProvider.debug,
-          appleProvider: AppleProvider.debug,
-          webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
-        );
-        debugPrint('Firebase App Check initialized');
-      } catch (e) {
-        debugPrint('Error initializing App Check: $e');
-        // Continue without App Check in development
-      }
-    });
+    // Sign in anonymously if not already signed in
+    if (FirebaseAuth.instance.currentUser == null) {
+      await FirebaseAuth.instance.signInAnonymously();
+    }
+
+    // Activate App Check
+    // Note: Ensure you have the debug token from your logs added to the
+    // Firebase console for App Check to work in debug mode.
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.debug,
+      appleProvider: AppleProvider.debug,
+      webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
+    );
 
     // Initialize notifications
     await NotificationService().initNotifications();
+  }
 
-    runApp(const MyApp());
-  } catch (e, stackTrace) {
-    debugPrint('Error initializing Firebase: $e');
-    debugPrint('Stack trace: $stackTrace');
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _initializationFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          // If initialization is complete, show the main app
+          return const MyApp();
+        }
 
-    runApp(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Error initializing the app',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        if (snapshot.hasError) {
+          // If initialization fails, show an error screen
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Error initializing the app',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        snapshot.error.toString(),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
-                Text(
-                  e.toString(),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.red),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    main();
-                  },
-                  child: const Text('Retry'),
-                ),
-              ],
+              ),
+            ),
+          );
+        }
+
+        // While initializing, show a loading spinner
+        return const MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

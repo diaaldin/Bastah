@@ -663,6 +663,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get languageLabel;
+
+  /// No description provided for @confirmLogoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Logout'**
+  String get confirmLogoutTitle;
+
+  /// No description provided for @confirmLogoutMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to log out?'**
+  String get confirmLogoutMessage;
+
+  /// No description provided for @logoutButtonText.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get logoutButtonText;
+
+  /// No description provided for @adminDashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Dashboard'**
+  String get adminDashboardTitle;
+
+  /// No description provided for @dashboardSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get dashboardSummaryTitle;
+
+  /// No description provided for @totalOrdersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Orders'**
+  String get totalOrdersLabel;
+
+  /// No description provided for @totalRevenueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Revenue'**
+  String get totalRevenueLabel;
+
+  /// No description provided for @totalProductsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Products'**
+  String get totalProductsLabel;
+
+  /// No description provided for @totalCustomersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Customers'**
+  String get totalCustomersLabel;
+
+  /// No description provided for @dashboardSalesChartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales Over Last 7 Days'**
+  String get dashboardSalesChartTitle;
+
+  /// No description provided for @dayMon.
+  ///
+  /// In en, this message translates to:
+  /// **'Mon'**
+  String get dayMon;
+
+  /// No description provided for @dayTue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tue'**
+  String get dayTue;
+
+  /// No description provided for @dayWed.
+  ///
+  /// In en, this message translates to:
+  /// **'Wed'**
+  String get dayWed;
+
+  /// No description provided for @dayThu.
+  ///
+  /// In en, this message translates to:
+  /// **'Thu'**
+  String get dayThu;
+
+  /// No description provided for @dayFri.
+  ///
+  /// In en, this message translates to:
+  /// **'Fri'**
+  String get dayFri;
+
+  /// No description provided for @daySat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sat'**
+  String get daySat;
+
+  /// No description provided for @daySun.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun'**
+  String get daySun;
+
+  /// No description provided for @dashboardRecentOrdersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Orders'**
+  String get dashboardRecentOrdersTitle;
+
+  /// No description provided for @signOutConfirmationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get signOutConfirmationTitle;
+
+  /// No description provided for @signOutConfirmationMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to sign out?'**
+  String get signOutConfirmationMessage;
+
+  /// No description provided for @signOutButtonText.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get signOutButtonText;
+
+  /// No description provided for @orderPlacedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Placed'**
+  String get orderPlacedLabel;
+
+  /// No description provided for @unknownProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Product'**
+  String get unknownProduct;
 }
 
 class _AppLocalizationsDelegate

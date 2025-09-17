@@ -306,4 +306,73 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageLabel => 'Language';
+
+  @override
+  String get confirmLogoutTitle => 'Confirm Logout';
+
+  @override
+  String get confirmLogoutMessage => 'Are you sure you want to log out?';
+
+  @override
+  String get logoutButtonText => 'Logout';
+
+  @override
+  String get adminDashboardTitle => 'Admin Dashboard';
+
+  @override
+  String get dashboardSummaryTitle => 'Summary';
+
+  @override
+  String get totalOrdersLabel => 'Total Orders';
+
+  @override
+  String get totalRevenueLabel => 'Total Revenue';
+
+  @override
+  String get totalProductsLabel => 'Total Products';
+
+  @override
+  String get totalCustomersLabel => 'Total Customers';
+
+  @override
+  String get dashboardSalesChartTitle => 'Sales Over Last 7 Days';
+
+  @override
+  String get dayMon => 'Mon';
+
+  @override
+  String get dayTue => 'Tue';
+
+  @override
+  String get dayWed => 'Wed';
+
+  @override
+  String get dayThu => 'Thu';
+
+  @override
+  String get dayFri => 'Fri';
+
+  @override
+  String get daySat => 'Sat';
+
+  @override
+  String get daySun => 'Sun';
+
+  @override
+  String get dashboardRecentOrdersTitle => 'Recent Orders';
+
+  @override
+  String get signOutConfirmationTitle => 'Sign Out';
+
+  @override
+  String get signOutConfirmationMessage => 'Are you sure you want to sign out?';
+
+  @override
+  String get signOutButtonText => 'Sign Out';
+
+  @override
+  String get orderPlacedLabel => 'Order Placed';
+
+  @override
+  String get unknownProduct => 'Unknown Product';
 }

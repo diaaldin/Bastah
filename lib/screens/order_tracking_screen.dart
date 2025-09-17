@@ -1,8 +1,11 @@
 import 'package:bastah/l10n/app_localizations.dart';
 import 'package:bastah/models/order.dart';
+import 'package:bastah/models/product.dart';
 import 'package:bastah/services/order_service.dart';
+import 'package:bastah/services/product_service.dart';
 import 'package:flutter/material.dart';
-import 'package:bastah/l10n/app_localizations_utils.dart'; // Added import
+import 'package:bastah/l10n/app_localizations_utils.dart';
+import 'package:intl/intl.dart';
 
 class OrderTrackingScreen extends StatelessWidget {
   const OrderTrackingScreen({super.key});
@@ -10,12 +13,13 @@ class OrderTrackingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appLocalizations = AppLocalizations.of(context)!;
-    final OrderService orderService = OrderService(); // Renamed _orderService
+    final OrderService orderService = OrderService();
+    final ProductService productService = ProductService();
 
     return Scaffold(
       appBar: AppBar(title: Text(appLocalizations.orderTrackingTitle)),
       body: StreamBuilder<List<Order>>(
-        stream: orderService.getOrders(), // Using renamed orderService
+        stream: orderService.getOrders(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(
@@ -39,15 +43,20 @@ class OrderTrackingScreen extends StatelessWidget {
             itemCount: orders.length,
             itemBuilder: (context, index) {
               Order order = orders[index];
+              final formattedDate = DateFormat.yMMMd().add_jm().format(
+                order.createdAt.toDate(),
+              );
+
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ExpansionTile(
-                  title: Text('${appLocalizations.orderIdLabel}: ${order.id}'),
-                  subtitle: Text(
-                    '${appLocalizations.totalAmountLabel}: \$${order.totalAmount.toString()}\n'
-                    '${appLocalizations.orderStatusLabel}: ${appLocalizations.translateOrderStatus(order.status)}',
+                  title: Text(
+                    '${appLocalizations.orderPlacedLabel}: $formattedDate',
                   ),
-
+                  subtitle: Text(
+                    '${appLocalizations.totalAmountLabel}: \$${order.totalAmount.toStringAsFixed(2)}\n' // Note: The dollar sign here is escaped correctly for Dart string literals.
+                    '${appLocalizations.orderStatusLabel}: ${appLocalizations.translateOrderStatus(order.status)}\n',
+                  ),
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -56,29 +65,55 @@ class OrderTrackingScreen extends StatelessWidget {
                         children: [
                           Text(
                             '${appLocalizations.customerNameLabel}: ${order.customerName}',
-                          ), // Fixed hardcoded string
+                          ),
                           Text(
                             '${appLocalizations.customerPhoneLabel}: ${order.customerPhone}',
-                          ), // Fixed hardcoded string
+                          ),
                           Text(
                             '${appLocalizations.customerAddressLabel}: ${order.customerAddress}',
-                          ), // Fixed hardcoded string
+                          ),
                           Text(
                             '${appLocalizations.paymentMethodLabel}: ${appLocalizations.translatePaymentMethod(order.paymentMethod)}',
                           ),
-                          Text(
-                            '${appLocalizations.createdAtLabel}: ${order.createdAt.toDate().toLocal().toString().split('.').first}',
-                          ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 16),
                           Text(
                             appLocalizations.orderItemsLabel,
                             style: const TextStyle(fontWeight: FontWeight.bold),
-                          ), // Fixed hardcoded string
+                          ),
+                          const SizedBox(height: 8),
                           ...order.items.map(
-                            (item) => Text(
-                              '- ${appLocalizations.productIdLabel}: ${item.productId}, ${appLocalizations.quantityLabel}: ${item.quantity}, ${appLocalizations.priceLabel}: \$${item.price.toString()}',
+                            (item) => FutureBuilder<Product?>(
+                              future: productService.getProductById(
+                                item.productId,
+                              ),
+                              builder: (context, productSnapshot) {
+                                if (productSnapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 4.0,
+                                    ),
+                                    child: Text('  - Loading item...'),
+                                  );
+                                }
+
+                                final productName =
+                                    productSnapshot.data?.getLocalizedName(
+                                      appLocalizations,
+                                    ) ??
+                                    appLocalizations.unknownProduct;
+
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4.0,
+                                  ),
+                                  child: Text(
+                                    '  - $productName (${appLocalizations.quantityLabel}: ${item.quantity})',
+                                  ),
+                                );
+                              },
                             ),
-                          ), // .toList() removed here
+                          ),
                         ],
                       ),
                     ),

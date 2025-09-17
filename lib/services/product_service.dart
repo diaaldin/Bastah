@@ -34,7 +34,9 @@ class ProductService {
   }
 
   // Add a new product
-  Future<void> addProduct(Product product, List<File> imageFiles) async {
+  Future<Product> addProduct(Product product, List<File> imageFiles) async {
+    DocumentReference docRef = _firestore.collection('products').doc();
+
     List<String> imageUrls = [];
     for (var imageFile in imageFiles) {
       String fileName = '${DateTime.now().millisecondsSinceEpoch}.png';
@@ -46,7 +48,7 @@ class ProductService {
     }
 
     Product newProduct = Product(
-      id: product.id,
+      id: docRef.id,
       categoryId: product.categoryId,
       name: product.name,
       description: product.description,
@@ -55,18 +57,19 @@ class ProductService {
       images: imageUrls, // Use uploaded image URLs
     );
 
-    await _firestore.collection('products').add(newProduct.toFirestore());
+    await docRef.set(newProduct.toFirestore());
+    return newProduct;
   }
 
   // Update an existing product
-  Future<void> updateProduct(
+  Future<Product> updateProduct(
     Product product, {
     List<File>? newImageFiles,
   }) async {
-    List<String> existingImageUrls = product.images;
-    List<String> updatedImageUrls = List.from(existingImageUrls);
+    List<String> updatedImageUrls = product.images;
 
     if (newImageFiles != null && newImageFiles.isNotEmpty) {
+      updatedImageUrls = []; // Clear old images
       for (var imageFile in newImageFiles) {
         String fileName = '${DateTime.now().millisecondsSinceEpoch}.png';
         Reference ref = _storage.ref().child('product_images/$fileName');
@@ -91,6 +94,7 @@ class ProductService {
         .collection('products')
         .doc(product.id)
         .update(updatedProduct.toFirestore());
+    return updatedProduct;
   }
 
   // Delete a product

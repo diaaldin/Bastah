@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
+import 'package:bastah/l10n/app_localizations.dart';
 
 class Product {
   final String id;
@@ -41,5 +42,17 @@ class Product {
       'stock': stock,
       'images': images,
     };
+  }
+
+  String getLocalizedName(AppLocalizations appLocalizations) {
+    switch (appLocalizations.localeName) {
+      case 'ar':
+        return name['ar'] ?? name['en'] ?? '';
+      case 'he':
+        return name['he'] ?? name['en'] ?? '';
+      case 'en':
+      default:
+        return name['en'] ?? '';
+    }
   }
 }

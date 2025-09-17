@@ -51,6 +51,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         final cartService = Provider.of<CartService>(context, listen: false);
         final user = _authService.getCurrentUser();
 
+        if (user == null) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Authentication error. Please restart the app.')),
+          );
+          setState(() {
+            _isLoading = false;
+          });
+          return;
+        }
+
         if (cartService.cartItems.isEmpty) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
@@ -78,7 +89,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
         final order = Order(
           id: '', // Firestore will generate this
-          customerUid: user?.uid,
+          customerUid: user.uid,
           customerName: _fullNameController.text,
           customerPhone: _phoneNumberController.text,
           customerAddress: _addressController.text,

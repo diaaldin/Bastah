@@ -304,4 +304,73 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get languageLabel => 'Language';
+
+  @override
+  String get confirmLogoutTitle => 'אשר התנתקות';
+
+  @override
+  String get confirmLogoutMessage => 'האם אתה בטוח שברצונך להתנתק?';
+
+  @override
+  String get logoutButtonText => 'התנתק';
+
+  @override
+  String get adminDashboardTitle => 'לוח מחוונים למנהל';
+
+  @override
+  String get dashboardSummaryTitle => 'סיכום';
+
+  @override
+  String get totalOrdersLabel => 'סה\"כ הזמנות';
+
+  @override
+  String get totalRevenueLabel => 'סה\"כ הכנסות';
+
+  @override
+  String get totalProductsLabel => 'סה\"כ מוצרים';
+
+  @override
+  String get totalCustomersLabel => 'סה\"כ לקוחות';
+
+  @override
+  String get dashboardSalesChartTitle => 'מכירות ב-7 הימים האחרונים';
+
+  @override
+  String get dayMon => 'יום ב\'';
+
+  @override
+  String get dayTue => 'יום ג\'';
+
+  @override
+  String get dayWed => 'יום ד\'';
+
+  @override
+  String get dayThu => 'יום ה\'';
+
+  @override
+  String get dayFri => 'יום ו\'';
+
+  @override
+  String get daySat => 'שבת';
+
+  @override
+  String get daySun => 'יום א\'';
+
+  @override
+  String get dashboardRecentOrdersTitle => 'הזמנות אחרונות';
+
+  @override
+  String get signOutConfirmationTitle => 'התנתק';
+
+  @override
+  String get signOutConfirmationMessage => 'האם אתה בטוח שברצונך להתנתק?';
+
+  @override
+  String get signOutButtonText => 'התנתק';
+
+  @override
+  String get orderPlacedLabel => 'Order Placed';
+
+  @override
+  String get unknownProduct => 'Unknown Product';
 }
